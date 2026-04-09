@@ -1,4 +1,5 @@
 # Estoque Loja de Açaí
+![CI](https://github.com/iguinhodosprograma/Bootcamp_projeto/actions/workflows/ci.yml/badge.svg)
 
 ## Descrição do Problema
 
