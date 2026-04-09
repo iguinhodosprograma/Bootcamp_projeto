@@ -11,6 +11,9 @@ on:
 jobs:
   testes:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projeto
 
     steps:
       - name: Clonar repositório
