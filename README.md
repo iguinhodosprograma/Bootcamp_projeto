@@ -117,11 +117,6 @@ python -m src.api.servidor
 
 Acesse em: **http://localhost:5000**
 
-### Rodar a CLI (modo alternativo)
-
-```bash
-python run.py
-```
 
 ### Testes
 
