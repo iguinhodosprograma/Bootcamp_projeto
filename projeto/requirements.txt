@@ -1,2 +1,5 @@
 pytest
 ruff
+flask
+flask-cors
+requests

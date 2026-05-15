@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estoque Loja de Açaí</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --roxo:       #7c3aed;
+    --roxo-vivo:  #a855f7;
+    --roxo-escuro:#4c1d95;
+    --fundo:      #0f0a1e;
+    --fundo2:     #1a1030;
+    --fundo3:     #241840;
+    --borda:      rgba(124,58,237,.25);
+    --texto:      #f5f3ff;
+    --texto2:     #a78bfa;
+    --alerta:     #f59e0b;
+    --erro:       #ef4444;
+    --ok:         #10b981;
+    --raio:       14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--fundo);
+    color: var(--texto);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  aside {
+    width: 240px;
+    min-height: 100vh;
+    background: var(--fundo2);
+    border-right: 1px solid var(--borda);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 16px;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--texto);
+    padding: 0 8px 28px;
+    border-bottom: 1px solid var(--borda);
+    margin-bottom: 24px;
+    line-height: 1.3;
+  }
+  .logo span { color: var(--roxo-vivo); }
+
+  nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--texto2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    text-align: left;
+  }
+  .nav-btn:hover { background: var(--fundo3); color: var(--texto); }
+  .nav-btn.ativo { background: var(--roxo-escuro); color: var(--texto); }
+  .nav-btn .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+  .badge-alerta {
+    margin-left: auto;
+    background: var(--alerta);
+    color: #000;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    display: none;
+  }
+
+  main { flex: 1; overflow-y: auto; padding: 36px; }
+
+  .tela { display: none; animation: fadeIn .3s ease; }
+  .tela.ativa { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  h1 { font-family: 'Syne', sans-serif; font-size: 1.75rem; font-weight: 700; margin-bottom: 6px; }
+  .subtitulo { color: var(--texto2); font-size: .9rem; margin-bottom: 28px; }
+
+  .resumo {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .card-resumo {
+    background: var(--fundo2);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    padding: 20px;
+  }
+  .card-resumo .label { font-size: .78rem; color: var(--texto2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .card-resumo .valor { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 700; }
+  .card-resumo .valor.alerta { color: var(--alerta); }
+  .card-resumo .valor.ok { color: var(--ok); }
+
+  .tabela-wrap { background: var(--fundo2); border: 1px solid var(--borda); border-radius: var(--raio); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--fundo3); }
+  th { font-family: 'Syne', sans-serif; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--texto2); padding: 14px 20px; text-align: left; }
+  td { padding: 14px 20px; font-size: .9rem; border-top: 1px solid var(--borda); }
+  tr:hover td { background: var(--fundo3); }
+
+  .tag-ok    { background: rgba(16,185,129,.15); color: #34d399; padding: 3px 10px; border-radius: 20px; font-size: .78rem; font-weight: 500; }
+  .tag-baixo { background: rgba(245,158,11,.15); color: #fbbf24; padding: 3px 10px; border-radius: 20px; font-size: .78rem; font-weight: 500; }
+
+  .btn-acao {
+    background: transparent;
+    border: 1px solid var(--borda);
+    color: var(--texto2);
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: .8rem;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+    margin-right: 4px;
+  }
+  .btn-acao:hover { background: var(--roxo); border-color: var(--roxo); color: #fff; }
+  .btn-acao.remover:hover { background: var(--erro); border-color: var(--erro); color: #fff; }
+
+  .form-card { background: var(--fundo2); border: 1px solid var(--borda); border-radius: var(--raio); padding: 28px; max-width: 520px; }
+  .campo { margin-bottom: 18px; }
+  label { display: block; font-size: .82rem; color: var(--texto2); margin-bottom: 6px; font-weight: 500; }
+  input, select {
+    width: 100%;
+    background: var(--fundo3);
+    border: 1px solid var(--borda);
+    color: var(--texto);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, select:focus { border-color: var(--roxo-vivo); }
+  select option { background: var(--fundo3); }
+
+  .btn-principal {
+    background: var(--roxo);
+    color: #fff;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: .9rem;
+    cursor: pointer;
+    transition: background .2s;
+    width: 100%;
+    margin-top: 6px;
+  }
+  .btn-principal:hover { background: var(--roxo-vivo); }
+
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: .88rem;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+    z-index: 999;
+  }
+  #toast.show { opacity: 1; }
+  #toast.sucesso { background: rgba(16,185,129,.9); color: #fff; }
+  #toast.falha   { background: rgba(239,68,68,.9);  color: #fff; }
+
+  .card-alerta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(245,158,11,.08);
+    border: 1px solid rgba(245,158,11,.3);
+    border-radius: var(--raio);
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+  .card-alerta .emoji { font-size: 1.4rem; }
+  .card-alerta .nome  { font-weight: 600; }
+  .card-alerta .qtd   { font-size: .85rem; color: #fbbf24; margin-top: 2px; }
+
+  .vazio { color: var(--texto2); padding: 24px; text-align: center; }
+
+  /* ── CLIMA ── */
+  .badge-api {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: .72rem;
+    color: var(--texto2);
+    background: var(--fundo3);
+    border: 1px solid var(--borda);
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .clima-busca-card {
+    background: var(--fundo2);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    padding: 28px;
+    max-width: 520px;
+  }
+  .clima-busca-card h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 16px; }
+
+  .busca-cidade-wrap { display: flex; gap: 8px; margin-bottom: 18px; }
+  .busca-cidade-wrap input { flex: 1; }
+
+  .btn-buscar-clima {
+    background: var(--roxo);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: .85rem;
+    cursor: pointer;
+    transition: background .2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .btn-buscar-clima:hover { background: var(--roxo-vivo); }
+  .btn-buscar-clima:disabled { opacity: .4; cursor: not-allowed; }
+
+  .clima-resultado {
+    border-radius: 10px;
+    padding: 18px;
+    background: var(--fundo3);
+    border: 1px solid var(--borda);
+    display: none;
+  }
+  .clima-resultado.visivel { display: block; }
+  .clima-resultado .cidade-nome { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+  .clima-resultado .descricao   { font-size: .82rem; color: var(--texto2); text-transform: capitalize; margin-bottom: 16px; }
+
+  .clima-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .clima-stat { background: var(--fundo2); border: 1px solid var(--borda); border-radius: 8px; padding: 10px 14px; }
+  .clima-stat .stat-label { font-size: .72rem; color: var(--texto2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .clima-stat .stat-valor { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; }
+  .clima-stat .stat-valor.temp    { color: var(--roxo-vivo); }
+  .clima-stat .stat-valor.umidade { color: #38bdf8; }
+  .clima-stat .stat-valor.vento   { color: var(--ok); }
+
+  .clima-dica { margin-top: 14px; padding: 10px 14px; border-radius: 8px; font-size: .8rem; font-weight: 500; display: none; }
+  .clima-dica.visivel { display: block; }
+  .clima-dica.quente  { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.25); color: #fbbf24; }
+  .clima-dica.frio    { background: rgba(56,189,248,.1); border: 1px solid rgba(56,189,248,.25); color: #38bdf8; }
+
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo">Estoque<br><span>Loja de Açaí</span></div>
+  <nav>
+    <button class="nav-btn ativo" onclick="ir('listar')">
+      <span class="icon">📦</span> Estoque
+    </button>
+    <button class="nav-btn" onclick="ir('cadastrar')">
+      <span class="icon">➕</span> Cadastrar
+    </button>
+    <button class="nav-btn" onclick="ir('atualizar')">
+      <span class="icon">🔄</span> Atualizar
+    </button>
+    <button class="nav-btn" onclick="ir('remover')">
+      <span class="icon">🗑️</span> Remover
+    </button>
+    <button class="nav-btn" onclick="ir('alertas')">
+      <span class="icon">⚠️</span> Alertas
+      <span class="badge-alerta" id="badge">0</span>
+    </button>
+    <button class="nav-btn" onclick="ir('clima')">
+      <span class="icon">🌤️</span> Clima
+    </button>
+  </nav>
+</aside>
+
+<main>
+
+  <!-- LISTAR -->
+  <div class="tela ativa" id="tela-listar">
+    <h1>Estoque</h1>
+    <p class="subtitulo">Visão geral de todos os produtos cadastrados.</p>
+    <div class="resumo">
+      <div class="card-resumo">
+        <div class="label">Total de produtos</div>
+        <div class="valor" id="total-produtos">0</div>
+      </div>
+      <div class="card-resumo">
+        <div class="label">Em alerta</div>
+        <div class="valor alerta" id="total-alerta">0</div>
+      </div>
+      <div class="card-resumo">
+        <div class="label">Estoque ok</div>
+        <div class="valor ok" id="total-ok">0</div>
+      </div>
+    </div>
+    <div class="tabela-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Produto</th><th>Quantidade</th><th>Limite mínimo</th><th>Status</th><th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-tabela">
+          <tr><td colspan="5" class="vazio">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CADASTRAR -->
+  <div class="tela" id="tela-cadastrar">
+    <h1>Cadastrar Produto</h1>
+    <p class="subtitulo">Adicione um novo produto ao estoque.</p>
+    <div class="form-card">
+      <div class="campo">
+        <label>Nome do produto</label>
+        <input type="text" id="cad-nome" placeholder="Ex: Açaí 500ml">
+      </div>
+      <div class="campo">
+        <label>Quantidade em estoque</label>
+        <input type="number" id="cad-qtd" placeholder="0" min="0">
+      </div>
+      <div class="campo">
+        <label>Limite mínimo</label>
+        <input type="number" id="cad-lim" placeholder="0" min="0">
+      </div>
+      <button class="btn-principal" onclick="cadastrar()">Cadastrar produto</button>
+    </div>
+  </div>
+
+  <!-- ATUALIZAR -->
+  <div class="tela" id="tela-atualizar">
+    <h1>Atualizar Quantidade</h1>
+    <p class="subtitulo">Aumente ou diminua a quantidade de um produto.</p>
+    <div class="form-card">
+      <div class="campo">
+        <label>Produto</label>
+        <select id="atu-produto"><option value="">Selecione...</option></select>
+      </div>
+      <div class="campo">
+        <label>Operação</label>
+        <select id="atu-op">
+          <option value="AUMENTAR">Aumentar</option>
+          <option value="DIMINUIR">Diminuir</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Quantidade</label>
+        <input type="number" id="atu-valor" placeholder="0" min="0">
+      </div>
+      <button class="btn-principal" onclick="atualizar()">Atualizar quantidade</button>
+    </div>
+  </div>
+
+  <!-- REMOVER -->
+  <div class="tela" id="tela-remover">
+    <h1>Remover Produto</h1>
+    <p class="subtitulo">Remove um produto do estoque permanentemente.</p>
+    <div class="form-card">
+      <div class="campo">
+        <label>Produto</label>
+        <select id="rem-produto"><option value="">Selecione...</option></select>
+      </div>
+      <button class="btn-principal" style="background:var(--erro)" onclick="remover()">Remover produto</button>
+    </div>
+  </div>
+
+  <!-- ALERTAS -->
+  <div class="tela" id="tela-alertas">
+    <h1>Alertas de Reposição</h1>
+    <p class="subtitulo">Produtos abaixo do limite mínimo definido.</p>
+    <div id="lista-alertas"></div>
+  </div>
+
+  <!-- CLIMA -->
+  <div class="tela" id="tela-clima">
+    <h1>Clima & Previsão</h1>
+    <p class="subtitulo">Antecipe a demanda do açaí com base no tempo.</p>
+
+    <div class="badge-api">🔒 Integração via servidor Python · OpenWeather API</div>
+
+    <div class="clima-busca-card">
+      <h3>🌍 Consultar Clima</h3>
+      <div class="busca-cidade-wrap">
+        <input
+          type="text"
+          id="input-cidade"
+          placeholder="Ex: Recife, BR"
+          onkeydown="if(event.key==='Enter') buscarClima()"
+        >
+        <button class="btn-buscar-clima" id="btn-buscar" onclick="buscarClima()">Buscar</button>
+      </div>
+
+      <div class="clima-resultado" id="clima-resultado">
+        <div class="cidade-nome" id="clima-cidade">—</div>
+        <div class="descricao"   id="clima-descricao">—</div>
+        <div class="clima-stats">
+          <div class="clima-stat">
+            <div class="stat-label">Temperatura</div>
+            <div class="stat-valor temp"    id="clima-temp">—</div>
+          </div>
+          <div class="clima-stat">
+            <div class="stat-label">Sensação</div>
+            <div class="stat-valor temp"    id="clima-sensacao">—</div>
+          </div>
+          <div class="clima-stat">
+            <div class="stat-label">Umidade</div>
+            <div class="stat-valor umidade" id="clima-umidade">—</div>
+          </div>
+          <div class="clima-stat">
+            <div class="stat-label">Vento</div>
+            <div class="stat-valor vento"   id="clima-vento">—</div>
+          </div>
+        </div>
+        <div class="clima-dica" id="clima-dica"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+  // ── Estado (vem do servidor Python, não do localStorage) ──────────────────
+  let estoque = {};
+
+  async function carregarEstoque() {
+    try {
+      const r = await fetch('/api/estoque');
+      estoque = await r.json();
+    } catch {
+      toast('Não foi possível conectar ao servidor Python.', 'falha');
+    }
+  }
+
+  // ── Navegação ──────────────────────────────────────────────────────────────
+  function ir(tela) {
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('ativo'));
+    document.getElementById('tela-' + tela).classList.add('ativa');
+    event.currentTarget.classList.add('ativo');
+
+    if (tela === 'listar')    renderTabela();
+    if (tela === 'atualizar') preencherSelect('atu-produto');
+    if (tela === 'remover')   preencherSelect('rem-produto');
+    if (tela === 'alertas')   renderAlertas();
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function toast(msg, tipo = 'sucesso') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + tipo;
+    setTimeout(() => el.className = '', 3000);
+  }
+
+  // ── Render tabela ──────────────────────────────────────────────────────────
+  function renderTabela() {
+    const tbody = document.getElementById('corpo-tabela');
+    const nomes = Object.keys(estoque);
+    let alertaCount = 0, okCount = 0;
+
+    if (nomes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="vazio">Nenhum produto cadastrado.</td></tr>';
+    } else {
+      tbody.innerHTML = nomes.map(nome => {
+        const d = estoque[nome];
+        const baixo = d.quantidade < d.limite_minimo;
+        if (baixo) alertaCount++; else okCount++;
+        return `<tr>
+          <td><strong>${nome}</strong></td>
+          <td>${d.quantidade}</td>
+          <td>${d.limite_minimo}</td>
+          <td><span class="${baixo ? 'tag-baixo' : 'tag-ok'}">${baixo ? '⚠ Repor' : '✓ Ok'}</span></td>
+          <td>
+            <button class="btn-acao" onclick="atalhoAtualizar('${nome}')">Atualizar</button>
+            <button class="btn-acao remover" onclick="atalhoRemover('${nome}')">Remover</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('total-produtos').textContent = nomes.length;
+    document.getElementById('total-alerta').textContent   = alertaCount;
+    document.getElementById('total-ok').textContent       = okCount;
+
+    const badge = document.getElementById('badge');
+    badge.textContent = alertaCount;
+    badge.style.display = alertaCount > 0 ? 'inline' : 'none';
+  }
+
+  // ── Cadastrar ──────────────────────────────────────────────────────────────
+  async function cadastrar() {
+    const nome = document.getElementById('cad-nome').value.trim();
+    const qtd  = parseInt(document.getElementById('cad-qtd').value);
+    const lim  = parseInt(document.getElementById('cad-lim').value);
+
+    if (!nome) return toast('O nome não pode ser vazio.', 'falha');
+    if (isNaN(qtd) || isNaN(lim)) return toast('Preencha todos os campos.', 'falha');
+
+    const r = await fetch('/api/estoque', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, quantidade: qtd, limite_minimo: lim })
+    });
+    const dados = await r.json();
+    if (!r.ok) return toast(dados.mensagem, 'falha');
+
+    await carregarEstoque();
+    document.getElementById('cad-nome').value = '';
+    document.getElementById('cad-qtd').value  = '';
+    document.getElementById('cad-lim').value  = '';
+    toast(`"${nome.toUpperCase()}" cadastrado com sucesso!`);
+    atualizarBadge();
+  }
+
+  // ── Atualizar ──────────────────────────────────────────────────────────────
+  async function atualizar() {
+    const nome = document.getElementById('atu-produto').value;
+    const op   = document.getElementById('atu-op').value;
+    const val  = parseInt(document.getElementById('atu-valor').value);
+
+    if (!nome) return toast('Selecione um produto.', 'falha');
+    if (isNaN(val) || val < 0) return toast('Valor inválido.', 'falha');
+
+    const r = await fetch(`/api/estoque/${encodeURIComponent(nome)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ valor: val, operacao: op })
+    });
+    const dados = await r.json();
+    if (!r.ok) return toast(dados.mensagem, 'falha');
+
+    await carregarEstoque();
+    toast(`"${nome}" atualizado com sucesso!`);
+    atualizarBadge();
+  }
+
+  // ── Remover ────────────────────────────────────────────────────────────────
+  async function remover() {
+    const nome = document.getElementById('rem-produto').value;
+    if (!nome) return toast('Selecione um produto.', 'falha');
+
+    const r = await fetch(`/api/estoque/${encodeURIComponent(nome)}`, { method: 'DELETE' });
+    const dados = await r.json();
+    if (!r.ok) return toast(dados.mensagem, 'falha');
+
+    await carregarEstoque();
+    preencherSelect('rem-produto');
+    toast(`"${nome}" removido do estoque.`);
+    atualizarBadge();
+  }
+
+  // ── Alertas ────────────────────────────────────────────────────────────────
+  async function renderAlertas() {
+    const div = document.getElementById('lista-alertas');
+    const r   = await fetch('/api/estoque/alertas');
+    const em_alerta = await r.json();
+
+    if (em_alerta.length === 0) {
+      div.innerHTML = '<p class="vazio">✅ Nenhum produto precisa de reposição agora.</p>';
+    } else {
+      div.innerHTML = em_alerta.map(p => `
+        <div class="card-alerta">
+          <span class="emoji">⚠️</span>
+          <div>
+            <div class="nome">${p.nome}</div>
+            <div class="qtd">Quantidade atual: ${p.quantidade}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function preencherSelect(id) {
+    const sel = document.getElementById(id);
+    const atual = sel.value;
+    sel.innerHTML = '<option value="">Selecione...</option>' +
+      Object.keys(estoque).map(n =>
+        `<option value="${n}" ${n === atual ? 'selected' : ''}>${n}</option>`
+      ).join('');
+  }
+
+  function atualizarBadge() {
+    const count = Object.values(estoque).filter(d => d.quantidade < d.limite_minimo).length;
+    const badge = document.getElementById('badge');
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'inline' : 'none';
+  }
+
+  function atalhoAtualizar(nome) {
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('ativo'));
+    document.getElementById('tela-atualizar').classList.add('ativa');
+    document.querySelectorAll('.nav-btn')[2].classList.add('ativo');
+    preencherSelect('atu-produto');
+    document.getElementById('atu-produto').value = nome;
+  }
+
+  async function atalhoRemover(nome) {
+    if (!confirm(`Remover "${nome}" do estoque?`)) return;
+    const r = await fetch(`/api/estoque/${encodeURIComponent(nome)}`, { method: 'DELETE' });
+    if (r.ok) {
+      await carregarEstoque();
+      renderTabela();
+      toast(`"${nome}" removido.`);
+      atualizarBadge();
+    }
+  }
+
+  // ── Clima — chama /api/clima no servidor Flask (key nunca chega ao browser) ─
+  async function buscarClima() {
+    const cidade = document.getElementById('input-cidade').value.trim();
+    const btn    = document.getElementById('btn-buscar');
+
+    if (!cidade) return toast('Digite o nome de uma cidade.', 'falha');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Buscando...';
+
+    try {
+      const r = await fetch(`/api/clima?cidade=${encodeURIComponent(cidade)}`);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.erro || d.message || `Erro ${r.status}`);
+      exibirClima(d);
+    } catch (err) {
+      toast(err.message, 'falha');
+      document.getElementById('clima-resultado').classList.remove('visivel');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Buscar';
+    }
+  }
+
+  function exibirClima(d) {
+    document.getElementById('clima-cidade').textContent    = `${d.name}, ${d.sys.country}`;
+    document.getElementById('clima-descricao').textContent = d.weather[0].description;
+    document.getElementById('clima-temp').textContent      = `${Math.round(d.main.temp)}°C`;
+    document.getElementById('clima-sensacao').textContent  = `${Math.round(d.main.feels_like)}°C`;
+    document.getElementById('clima-umidade').textContent   = `${d.main.humidity}%`;
+    document.getElementById('clima-vento').textContent     = `${(d.wind.speed * 3.6).toFixed(1)} km/h`;
+    document.getElementById('clima-resultado').classList.add('visivel');
+
+    const dica = document.getElementById('clima-dica');
+    const temp = d.main.temp;
+    if (temp >= 28) {
+      dica.className = 'clima-dica visivel quente';
+      dica.textContent = `🔥 Calor de ${Math.round(temp)}°C! Reforce o estoque — a demanda por açaí tende a ser alta.`;
+    } else if (temp < 18) {
+      dica.className = 'clima-dica visivel frio';
+      dica.textContent = `🧊 Temperatura de ${Math.round(temp)}°C. Demanda tende a ser menor — avalie bem antes de repor.`;
+    } else {
+      dica.className = 'clima-dica';
+    }
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  (async () => {
+    await carregarEstoque();
+    renderTabela();
+    atualizarBadge();
+  })();
+</script>
+</body>
+</html>
