@@ -5,7 +5,6 @@
 ## 🌐 Aplicação publicada
 
 **[https://seu-projeto.onrender.com](https://seu-projeto.onrender.com)**
-*(substitua pelo link real após o deploy no Render)*
 
 ---
 
