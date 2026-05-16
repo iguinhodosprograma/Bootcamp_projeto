@@ -55,7 +55,7 @@ def post_cadastrar():
 
 @app.patch("/api/estoque/<nome>")
 def patch_atualizar(nome):
-    """Atualiza quantidade. Body JSON: {valor, operacao}, operacao: AUMENTAR | DIMINUIR"""
+    """Atualiza quantidade. Body JSON: {valor,operacao},operacao: AUMENTAR | DIMINUIR"""
     dados = request.get_json()
     estoque = carregar_estoque()
     try:
